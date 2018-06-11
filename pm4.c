@@ -1,12 +1,13 @@
 //*********************************************************
 //
-//  pm4.c - by Chris Duerden
-//	Power Management program for ATTiny85
+//  pm5.c - by Chris Duerden
+//	SuperGameGirl Power Management program for ATTiny85
 //	9/9/2015	RevA - Initial Release
 //	9/20/2015	RevB - Added sw debounce to while loop
 //	9/30/2015	RevC - Fixed issue with power switch being 
 //						turned off before full Rpi boot
 //	10/20/2015	RevD - Reordered pins to match BoardRevB
+//	05/31/2018	RevE - Force power off if not off in 30 seconds
 //	
 //	Function: Monitors power switch, if on, power on power 
 //		supply and screen, if off safe power down RPi and
@@ -33,7 +34,8 @@ int i = 0;
 int j = 0;
 int switchoff = 0;
 int debounce = 0;
-int timeOUT = 0;
+int timeoutPU = 0;
+int timeoutSD = 0;
 
 void sleepNOW()   //function to put attiny85 into low power sleep mode      
    {			  
@@ -62,9 +64,12 @@ void wakeUP()
 	
 void shutDOWN()
 	{
+		timeoutSD = 0;
 		while(rpiSD == 0)					//wait for RPi to shutdown properly
 		{
-			if((PINB & (1 << rpistate)) == 0)	//When this goes low RPi is shutting down
+			timeoutSD++;
+			_delay_ms(10);
+			if((PINB & (1 << rpistate)) == 0 || timeoutSD == 3000)	//When this goes low RPi is shutting down
 			{
 				rpiSD++;
 			}
@@ -156,12 +161,12 @@ int main(void)
 			if((PINB & (1 << rpistate)) == 0) //  If turned off prior to full RPi boot
 			{
 				rpiPU = 0;
-				timeOUT = 0;
+				timeoutPU = 0;
 				while(rpiPU == 0)
 				{
-					timeOUT++;
+					timeoutPU++;
 					_delay_ms(10);
-					if(PINB & (1 << rpistate) || timeOUT == 2000)	//When this goes High RPi is powered up or times out
+					if(PINB & (1 << rpistate) || timeoutPU == 2000)	//When this goes High RPi is powered up or times out
 					{
 						rpiPU++;
 						_delay_ms(1000);
