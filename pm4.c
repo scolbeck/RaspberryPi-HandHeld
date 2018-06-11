@@ -1,6 +1,6 @@
 //*********************************************************
 //
-//  pm5.c - by Chris Duerden
+//  pm4.c - by Chris Duerden
 //	SuperGameGirl Power Management program for ATTiny85
 //	9/9/2015	RevA - Initial Release
 //	9/20/2015	RevB - Added sw debounce to while loop
